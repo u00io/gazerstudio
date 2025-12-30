@@ -75,37 +75,71 @@ func NewSettings() *Settings {
 	c.legendItemHeight = 22
 	c.legendItemXOffset = 0
 	c.legendItemYOffset = 0
-
-	// Demo data
-	area := NewSettingsArea()
-	series := NewSettingsSeries()
-	series.displayName = "Demo Series"
-	area.series = append(area.series, series)
-	c.areas = append(c.areas, area)
 	c.horScale = NewHorizontalScale()
 
-	itemHistory := make([]*DataItemValue, 0)
-	for i := int64(100); i < 3500; i++ {
-		t := i * 1000000
-		v := math.Sin(float64(i)/180*3.14159) * 50.0
-		item := &DataItemValue{
-			DatetimeFirst: t,
-			DatetimeLast:  t + 999999,
-			FirstValue:    v,
-			LastValue:     v,
-			MinValue:      v,
-			MaxValue:      v,
-			AvgValue:      v,
-			SumValue:      v,
-			CountOfValues: 1,
-			Qualities:     []int{1},
-			HasGood:       true,
-			HasBad:        false,
-			Uom:           "units",
+	// Demo data 1
+	{
+		area := NewSettingsArea()
+		series := NewSettingsSeries()
+		series.displayName = "Demo Series"
+		area.series = append(area.series, series)
+		c.areas = append(c.areas, area)
+
+		itemHistory := make([]*DataItemValue, 0)
+		for i := int64(100); i < 3500; i++ {
+			t := i * 1000000
+			v := math.Sin(float64(i)/180*3.14159) * 50.0
+			item := &DataItemValue{
+				DatetimeFirst: t,
+				DatetimeLast:  t + 999999,
+				FirstValue:    v,
+				LastValue:     v,
+				MinValue:      v,
+				MaxValue:      v,
+				AvgValue:      v,
+				SumValue:      v,
+				CountOfValues: 1,
+				Qualities:     []int{1},
+				HasGood:       true,
+				HasBad:        false,
+				Uom:           "units",
+			}
+			itemHistory = append(itemHistory, item)
 		}
-		itemHistory = append(itemHistory, item)
+		series.itemHistory = itemHistory
 	}
-	series.itemHistory = itemHistory
+
+	// Demo data 2
+	{
+		area := NewSettingsArea()
+		series := NewSettingsSeries()
+		series.displayName = "Demo Series"
+		area.series = append(area.series, series)
+		c.areas = append(c.areas, area)
+
+		itemHistory := make([]*DataItemValue, 0)
+		for i := int64(100); i < 3500; i++ {
+			t := i * 1000000
+			v := math.Sin(float64(i)/100*3.14159)*50.0 + 50.0
+			item := &DataItemValue{
+				DatetimeFirst: t,
+				DatetimeLast:  t + 999999,
+				FirstValue:    v,
+				LastValue:     v,
+				MinValue:      v,
+				MaxValue:      v,
+				AvgValue:      v,
+				SumValue:      v,
+				CountOfValues: 1,
+				Qualities:     []int{1},
+				HasGood:       true,
+				HasBad:        false,
+				Uom:           "units",
+			}
+			itemHistory = append(itemHistory, item)
+		}
+		series.itemHistory = itemHistory
+	}
 
 	c.backColor = color.RGBA{15, 15, 15, 255}
 
@@ -113,6 +147,22 @@ func NewSettings() *Settings {
 	c.horScale.ResetToDefaultDisplayRange()
 
 	return &c
+}
+
+func (c *Settings) RemoveAllAreas() {
+	c.areas = make([]*SettingsArea, 0)
+}
+
+func (c *Settings) AddArea(area *SettingsArea) {
+	c.areas = append(c.areas, area)
+}
+
+func (c *Settings) Areas() []*SettingsArea {
+	return c.areas
+}
+
+func (c *Settings) HorizontalScale() *HorizontalScale {
+	return c.horScale
 }
 
 func (c *Settings) draw(cnv *ui.Canvas, width, height int) {

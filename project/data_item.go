@@ -17,6 +17,14 @@ func (c *DataItemValue) DateTimeString() string {
 	return utils.FormatDateTime(c.DT)
 }
 
+func (c *DataItemValue) FloatValue() float64 {
+	fv, err := strconv.ParseFloat(c.Value, 64)
+	if err != nil {
+		return 0
+	}
+	return fv
+}
+
 type DataItemHistory struct {
 	Values []DataItemValue `json:"values"`
 }

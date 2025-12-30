@@ -29,6 +29,10 @@ func NewSettingsArea() *SettingsArea {
 	return &c
 }
 
+func (c *SettingsArea) AddSeries(s *SettingsSeries) {
+	c.series = append(c.series, s)
+}
+
 func (c *SettingsArea) Calc(settings *Settings, x, y, w, h, vsWidth int) {
 	c.xOffset = x
 	c.yOffset = y
@@ -50,7 +54,8 @@ func (c *SettingsArea) Calc(settings *Settings, x, y, w, h, vsWidth int) {
 			vScale := NewVerticalScale()
 			vScale.UpdateVerticalScaleValues(s.itemHistory, false)
 			s.Calc(x, y, w, h, vsWidth, vScale, float64(seriesIndex)*settings.legendItemHeight+settings.legendItemHeight/2+settings.legendItemYOffset)
-			s.vScale.Calc(seriesIndex*DefaultVerticalScaleWidthInline, y, 50, h)
+			//s.vScale.Calc(seriesIndex*DefaultVerticalScaleWidthInline, y, 50, h)
+			s.vScale.Calc(seriesIndex*DefaultVerticalScaleWidthInline, 0, 50, h)
 			if c.ShowZero() || s.ShowZero() {
 				s.vScale.ExpandToZero()
 			}

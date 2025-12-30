@@ -1,15 +1,15 @@
 package contentpanel
 
 import (
-	"github.com/u00io/gazerstudio/chart"
+	"github.com/u00io/gazerstudio/forms/modes/modeproject"
 	"github.com/u00io/nuiforms/ui"
 )
 
 type ContentPanel struct {
 	ui.Widget
 
-	//projectWidget *modeproject.ProjectWidget
-	chart *chart.Chart
+	projectWidget *modeproject.ProjectWidget
+	//chart *chart.Chart
 }
 
 func NewContentPanel() *ContentPanel {
@@ -18,15 +18,16 @@ func NewContentPanel() *ContentPanel {
 	c.SetXExpandable(true)
 	c.SetYExpandable(true)
 
-	//c.projectWidget = modeproject.NewProjectWidget()
-	c.chart = chart.NewChart()
+	c.projectWidget = modeproject.NewProjectWidget()
+	//c.chart = chart.NewChart()
 
 	customWidgets := map[string]ui.Widgeter{
-		"chart": c.chart,
+		//"chart": c.chart,
+		"projectWidget": c.projectWidget,
 	}
 	c.SetLayout(`
 		<column>
-			<widget id="chart" />
+			<widget id="projectWidget" />
 		</column>		
 	`, &c, customWidgets)
 	return &c

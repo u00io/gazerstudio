@@ -1,6 +1,10 @@
 package chart
 
-import "github.com/u00io/nuiforms/ui"
+import (
+	"image/color"
+
+	"github.com/u00io/nuiforms/ui"
+)
 
 type SettingsSeries struct {
 	xOffset               int
@@ -18,11 +22,18 @@ type SettingsSeries struct {
 
 	// Props
 	showZero bool
+
+	color color.Color
 }
 
 func NewSettingsSeries() *SettingsSeries {
 	var c SettingsSeries
+	c.color = ui.ColorFromHex("#0050A0")
 	return &c
+}
+
+func (c *SettingsSeries) SetData(itemHistory []*DataItemValue) {
+	c.itemHistory = itemHistory
 }
 
 func (c *SettingsSeries) Calc(x, y, w, h, vsWidth int, vSc *VerticalScale, yHeaderOffset float64) {
@@ -50,10 +61,10 @@ func (c *SettingsSeries) draw(cnv *ui.Canvas, width int, height int, hScale *Hor
 
 	var funcDrawPoints = func() {
 		if len(points) == 1 {
-			FillCircleOnCanvas(cnv, int(points[0].X), int(points[0].Y), 1, ui.ColorFromHex("#FF0000"))
+			FillCircleOnCanvas(cnv, int(points[0].X), int(points[0].Y), 1, c.color)
 			//canvas.drawPoints(PointMode.points, points, paint);
 		} else {
-			DrawPolygonOnCanvas(cnv, points, 1, ui.ColorFromHex("#FF0000"))
+			DrawPolygonOnCanvas(cnv, points, 1.5, c.color)
 		}
 		points = []Point{}
 	}

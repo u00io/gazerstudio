@@ -2,6 +2,8 @@ package chart
 
 import (
 	"fmt"
+	"math"
+	"strconv"
 	"time"
 
 	"github.com/u00io/nuiforms/ui"
@@ -20,12 +22,28 @@ type HorizontalScale struct {
 	defaultDisplayMax float64
 
 	fixedHorScale bool
+	scaleType     HorizontalScaleType
 }
+
+type HorizontalScaleType int
+
+const (
+	HorizontalScaleTypeTime  HorizontalScaleType = 0
+	HorizontalScaleTypeValue HorizontalScaleType = 1
+)
 
 func NewHorizontalScale() *HorizontalScale {
 	var c HorizontalScale
 	c.height = 30
 	return &c
+}
+
+func (c *HorizontalScale) ScaleType() HorizontalScaleType {
+	return c.scaleType
+}
+
+func (c *HorizontalScale) SetScaleType(t HorizontalScaleType) {
+	c.scaleType = t
 }
 
 func (c *HorizontalScale) ResetToDefaultDisplayRange() {
@@ -86,22 +104,39 @@ func (c *HorizontalScale) draw(cnv *ui.Canvas, width, height int) {
 		displayDatesBlocks = false
 	}*/
 
-	beautifulScale := c.getHorBeautifulScale(int64(c.displayMin), int64(c.displayMax), countOfValues)
+	var beautifulScale []float64
+	if c.scaleType == HorizontalScaleTypeValue {
+		countOfValues = int64(c.width / 150)
+		beautifulScale = c.getHorBeautifulScaleValue(c.displayMin, c.displayMax, countOfValues)
+	}
+	if c.scaleType == HorizontalScaleTypeTime {
+		beautifulScale = c.getHorBeautifulScaleTime(c.displayMin, c.displayMax, countOfValues)
+	}
 
 	for _, t := range beautifulScale {
-		dt := time.UnixMicro(t).UTC()
-		dateStr := dt.Format("2006-01-02")
-		timeStr := dt.Format("15:04:05")
-		ms := dt.Nanosecond() / 1000000
+		dateStr := ""
+		timeStr := ""
 		msStr := ""
 
-		if len(beautifulScale) > 1 {
-			if beautifulScale[1]-beautifulScale[0] >= 60*1000000 {
-				timeStr = dt.Format("15:04")
+		if c.scaleType == HorizontalScaleTypeTime {
+			dt := time.UnixMicro(int64(t)).UTC()
+			dateStr = dt.Format("2006-01-02")
+			timeStr = dt.Format("15:04:05")
+			ms := dt.Nanosecond() / 1000000
+
+			if len(beautifulScale) > 1 {
+				if beautifulScale[1]-beautifulScale[0] >= 60*1000000 {
+					timeStr = dt.Format("15:04")
+				}
+				if beautifulScale[1]-beautifulScale[0] < 1000000 {
+					msStr = fmt.Sprintf("%d ms", ms)
+				}
 			}
-			if beautifulScale[1]-beautifulScale[0] < 1000000 {
-				msStr = fmt.Sprintf("%d ms", ms)
-			}
+		}
+
+		if c.scaleType == HorizontalScaleTypeValue {
+			value := t
+			timeStr = strconv.FormatFloat(value, 'f', 0, 64)
 		}
 
 		_ = msStr
@@ -135,11 +170,11 @@ func (c *HorizontalScale) draw(cnv *ui.Canvas, width, height int) {
 	cnv.Save()
 	//cnv.ClipRect(c.xOffset, c.yOffset, c.width, c.height)
 
-	if displayDatesBlocks && diapasonX > 0 {
-		beautifulScaleForDates := c.getHorBeautifulScale(int64(c.displayMin), int64(c.displayMax), int64(countOfDays))
+	if c.scaleType == HorizontalScaleTypeTime && displayDatesBlocks && diapasonX > 0 {
+		beautifulScaleForDates := c.getHorBeautifulScaleTime(c.displayMin, c.displayMax, int64(countOfDays))
 		off := c.yOffset + 14
 		for _, d := range beautifulScaleForDates {
-			dt := time.UnixMicro(d)
+			dt := time.UnixMicro(int64(d))
 			currentColor := ui.ColorFromHex("#FFFFFF38")
 
 			isToday := false
@@ -187,23 +222,50 @@ func (c *HorizontalScale) draw(cnv *ui.Canvas, width, height int) {
 		}
 	}
 
-	cnv.DrawLine(c.xOffset, c.yOffset, c.xOffset+c.width, c.yOffset, 1, ui.ColorFromHex("#777777"))
+	cnv.DrawLine(c.xOffset, c.yOffset, c.xOffset+c.width, c.yOffset, 1, ui.ColorFromHex("#FFFF00"))
 	cnv.Restore()
 }
 
-func (c *HorizontalScale) getHorBeautifulScale(min, max int64, countOfPoints int64) []int64 {
-	scale := make([]int64, 0)
+func (c *HorizontalScale) getHorBeautifulScaleValue(min, max float64, countOfPoints int64) []float64 {
+	var scale []float64
 	if max < min {
 		return scale
 	}
 	if max == min {
-		scale = append(scale, int64(min))
+		scale = append(scale, min)
+		return scale
+	}
+	var diapason = max - min
+	var step = diapason / float64(countOfPoints)
+	doubleLog10 := func(x float64) float64 {
+		const ln10 = 2.302585092994046
+		return (math.Log(x) / ln10)
+	}
+	var log1 = math.Round(doubleLog10(step))
+	var step10 = math.Pow(10, log1)
+	for diapason/step10 < float64(countOfPoints) {
+		step10 = step10 / 2
+	}
+	for newMin := min - math.Mod(min, step10); newMin < max; newMin += step10 {
+		scale = append(scale, newMin)
+	}
+	return scale
+
+}
+
+func (c *HorizontalScale) getHorBeautifulScaleTime(min, max float64, countOfPoints int64) []float64 {
+	scale := make([]float64, 0)
+	if max < min {
+		return scale
+	}
+	if max == min {
+		scale = append(scale, float64(min))
 		return scale
 	}
 	diapason := max - min
-	step := int64(1)
+	step := float64(1)
 	if countOfPoints != 0 {
-		step = diapason / countOfPoints
+		step = diapason / float64(countOfPoints)
 	}
 	newMin := min
 	for i := 0; i < len(allowedSteps); i++ {
@@ -213,18 +275,18 @@ func (c *HorizontalScale) getHorBeautifulScale(min, max int64, countOfPoints int
 			break
 		}
 	}
-	newMin = newMin - int64(newMin)%int64(step)
+	newMin = newMin - float64(int64(newMin)%int64(step))
 
 	for i := int64(0); i < countOfPoints; i++ {
 		if newMin > min && newMin < max {
 			scale = append(scale, newMin)
 		}
-		newMin += int64(step)
+		newMin += float64(step)
 	}
 	return scale
 }
 
-var allowedSteps = []int64{
+var allowedSteps = []float64{
 	1,
 	5,
 	10,

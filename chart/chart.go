@@ -18,6 +18,10 @@ func NewChart() *Chart {
 	return &c
 }
 
+func (c *Chart) Settings() *Settings {
+	return c.s
+}
+
 func (c *Chart) draw(cnv *ui.Canvas) {
 	cnv.SetColor(ui.ColorFromHex("#777777"))
 	cnv.SetFontFamily(c.FontFamily())

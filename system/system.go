@@ -68,10 +68,13 @@ func (c *System) OpenProject(id string) {
 }
 
 func (c *System) InitDefaultProject() {
+
 	c.project = project.NewProject()
 	c.project.Id = "cdda2e3e6400d1f0abae1f0aeb07d080"
 	c.project.Name = "Default Project"
 	c.project.Save()
+
+	return
 
 	projectId := c.project.Id
 
@@ -80,16 +83,16 @@ func (c *System) InitDefaultProject() {
 	dataItem.Save()
 
 	values := make([]project.DataItemValue, 0)
-	for i := 0; i < 3600; i++ {
+	for i := 0; i < 4096; i++ {
 		dt := time.Now().Add(time.Duration(i) * time.Second).UnixMilli()
 
 		nowSec := time.Now().Add(-1 * time.Hour).Add(time.Duration(i) * time.Second).Unix()
 
 		demoData := ""
 		//rnd := rand.Int31() % 100
-		sinValue := math.Sin(float64(nowSec%60)/60.0*2.0*math.Pi)*100 + 100
+		sinValue := math.Sin(float64(nowSec%600)/600.0*2.0*math.Pi)*100 + 100
 		// add slow sin wave
-		sinValue += math.Sin(float64(nowSec%300)/300.0*2.0*math.Pi)*1050 + 50
+		//sinValue += math.Sin(float64(nowSec%300)/300.0*2.0*math.Pi)*1050 + 50
 		// add fast sin wave
 		//sinValue += math.Sin(float64(nowSec%10)/10.0*2.0*math.Pi)*20 + 20
 
